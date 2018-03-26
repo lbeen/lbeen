@@ -50,4 +50,7 @@
     </servlet-mapping>
 
     <display-name>lbeen</display-name>
+    <welcome-file-list>
+        <welcome-file>/index</welcome-file>
+    </welcome-file-list>
 </web-app>

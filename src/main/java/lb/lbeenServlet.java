@@ -36,37 +36,44 @@ public class lbeenServlet extends HttpServlet {
             throws ServletException, IOException {
         String uri = request.getRequestURI();
         uri = uri.replaceFirst(this.getServletContext().getContextPath(), "");
+        if ("/".equals(uri)){
+            uri = "/index";
+        }
         MethodExecuteInfo methodExecuteInfo = Mvcs.paserUrl(uri);
-        if (methodExecuteInfo.getLogin() != null && request.getSession().getAttribute("user") == null) {
-            request.getSession().setAttribute("url", uri);
-            response.setContentType("text/html;charset=UTF-8");
-            Mvcs.handleResponse(null, request, response, Mvcs.getLOGINPAGE());
-        } else {
-            Mvcs.putSession(request.getSession());
-            methodExecuteInfo.setParamMap(request.getParameterMap());
-            request.setCharacterEncoding("UTF-8");
-            try {
-                Object result = Mvcs.executeMethd(methodExecuteInfo, request);
-                if ("json".equals(methodExecuteInfo.getReturnType())) {
-                    response.setContentType("application/json; charset=utf-8");
-                    PrintWriter out = null;
-                    try {
-                        out = response.getWriter();
-                        out.write(Lang.toJson(result));
-                    } finally {
-                        if (out != null) {
-                            out.close();
+        if (methodExecuteInfo != null) {
+            if (methodExecuteInfo.getLogin() != null && request.getSession().getAttribute("user") == null) {
+                request.getSession().setAttribute("url", uri);
+                response.setContentType("text/html;charset=UTF-8");
+                Mvcs.handleResponse(null, request, response, Mvcs.getLOGINPAGE());
+            } else {
+                Mvcs.putSession(request.getSession());
+                methodExecuteInfo.setParamMap(request.getParameterMap());
+                request.setCharacterEncoding("UTF-8");
+                try {
+                    Object result = Mvcs.executeMethd(methodExecuteInfo, request);
+                    if ("json".equals(methodExecuteInfo.getReturnType())) {
+                        response.setContentType("application/json; charset=utf-8");
+                        PrintWriter out = null;
+                        try {
+                            out = response.getWriter();
+                            out.write(Lang.toJson(result));
+                        } finally {
+                            if (out != null) {
+                                out.close();
+                            }
                         }
+                    } else {
+                        response.setContentType("text/html;charset=UTF-8");
+                        Mvcs.handleResponse(result, request, response, methodExecuteInfo.getReturnType());
                     }
-                } else {
-                    response.setContentType("text/html;charset=UTF-8");
-                    Mvcs.handleResponse(result, request, response, methodExecuteInfo.getReturnType());
+                } catch (Exception e) {
+                    Mvcs.handleException(request, response, e, methodExecuteInfo.getReturnType());
+                } finally {
+                    Mvcs.removeSession();
                 }
-            } catch (Exception e) {
-                Mvcs.handleException(request, response, e, methodExecuteInfo.getReturnType());
-            } finally {
-                Mvcs.removeSession();
             }
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 }
