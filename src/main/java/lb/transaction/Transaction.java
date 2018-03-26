@@ -54,7 +54,7 @@ public interface Transaction {
      */
     void exec(Sql sql)throws Exception;
 
-    default void close(PreparedStatement ps,ResultSet rs){
+    default void close(PreparedStatement ps, ResultSet rs){
         if (rs != null){
             try {
                 rs.close();
